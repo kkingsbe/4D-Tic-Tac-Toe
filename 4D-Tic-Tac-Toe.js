@@ -1,6 +1,7 @@
 var camera, scene, renderer, controls;
 var meshes = {};
-var materials = {};
+//var materials = {};
+var materials = [];
 
 init();
 animate();
@@ -17,12 +18,9 @@ function init() {
   camera.position.y = 3;
   controls.update();
 
-  meshes.board = new THREE.Mesh(
-    new THREE.BoxGeometry(9,3,9),
-    new THREE.MeshBasicMaterial()
-  );
-
-  scene.add(meshes.board);
+  makeSingleBoard(0, 'board1');
+  makeSingleBoard(3, 'board2');
+  makeSingleBoard(-3, 'board3');
 }
 
 function animate() {
@@ -33,13 +31,44 @@ function animate() {
   //meshes.board.material.color.setHex(Math.random() * 0xffffff);
 }
 
-document.onkeydown = function (e) {
-  e = e || window.event;
-  console.log(e);
-  if(e.key == "w") camera.translateZ(-0.2);
-  if(e.key == "s") camera.translateZ(0.2);
-  if(e.key == "a") camera.translateX(-0.2);
-  if(e.key == "d") camera.translateX(0.2);
-  if(e.key == "Shift") camera.translateY(0.2);
-  if(e.key == "Control") camera.translateY(-0.2);
-};
+function makeSingleBoard(z, name)
+{
+  var geometry = new THREE.BoxGeometry(9,3,9,3,1,3);
+  //var geometry = new THREE.PlaneGeometry(3, 3, 3, 3);
+
+  /*
+  materials.dark = new THREE.MeshBasicMaterial({
+    color: 0x757575
+  });
+  materials.light = new THREE.MeshBasicMaterial({
+    color: 0xe8e8e8
+  });
+  */
+  materials[name] = [];
+  materials[name].push(new THREE.MeshBasicMaterial({
+    color: 0x757575
+  }));
+  materials[name].push(new THREE.MeshBasicMaterial({
+      color: 0xe8e8e8
+  }));
+
+  var materialIndex = 0;
+  for(var face = 0; face < geometry.faces.length; face+=2)
+  {
+    geometry.faces[face].materialIndex = materialIndex;
+    if(face + 1 < geometry.faces.length)
+    {
+      geometry.faces[face+1].materialIndex = materialIndex;
+    }
+    if(materialIndex == 1) materialIndex = 0;
+    else materialIndex = 1;
+  }
+
+  meshes[name] = new THREE.Mesh(
+    geometry,
+    materials[name]
+  );
+
+  meshes[name].translateY(z);
+  scene.add(meshes[name]);
+}
